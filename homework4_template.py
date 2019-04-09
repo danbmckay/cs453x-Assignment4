@@ -10,43 +10,25 @@ class SVM453X ():
     # contain n rows, where n is the number of examples.
     # y should correspondingly be an n-vector of labels (-1 or +1).
     def fit (self, X, y):
-        m, n = X.shape
-        # y = y.reshape(-1, 1) * 1.
-        # X_dash = y * X
-        # H = np.dot(X_dash, X_dash.T) * 1.
-        # P = H
-        # q = -np.ones((m, 1))
-        # G = -np.eye(m)
-        # h = np.zeros(m)
+        # Add 1s for the bias term
+        Xtilde = np.empty([X.shape[0], X.shape[1]+1])
+        for i in range(0, len(y)):
+            Xtilde[i] = np.hstack((X[i], [1]))
+        m, n = Xtilde.shape
 
-        # TODO change these -- they should be matrices or vectors
-        G = 0
-        P = 0
-        q = 0
-        h = 0
-
-        # K = y[:, None] * X
-        # K = np.dot(K, K.T)
-        # P = K
-        K = X.dot(X.T)
-        P = y *y.T * K
-        q = -np.ones((m, 1))
-        G = -np.eye(m)
-        h = np.zeros(m)
-
+        P = np.eye(n)
+        q = np.zeros(n)
+        G = -y.reshape(-1, 1) * Xtilde
+        h = -np.ones(m).reshape(-1, 1)
 
         # Solve -- if the variables above are defined correctly, you can call this as-is:
         sol = solvers.qp(matrix(P, tc='d'), matrix(q, tc='d'), matrix(G, tc='d'), matrix(h, tc='d'))
 
-        alphas = np.array(sol['x'])
-
         # Fetch the learned hyperplane and bias parameters out of sol['x']
+        answers = np.array(sol['x'])
+        self.w = answers[0:n-1].T
+        self.b = np.array([answers[n-1]])
 
-        self.w = np.sum(alphas * y[:, None] * X, axis = 0)
-
-        b = y - X.dot( self.w)
-
-        self.b = np.array([b[0]])
 
 
 
@@ -111,6 +93,6 @@ def test2 (seed):
         print("Passed")
 
 if __name__ == "__main__": 
-    # test1()
+    test1()
     for seed in range(5):
         test2(seed)
